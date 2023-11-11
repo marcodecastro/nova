@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 
 const Login = () => {
@@ -15,8 +16,21 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Aqui você pode lidar com os dados do formulário, como enviar para uma API
-    console.log(form);
+
+    fetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(form),
+    })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log('Success:', data);
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
   };
 
   return (

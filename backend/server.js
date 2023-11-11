@@ -1,39 +1,52 @@
-import express from 'express';
+import express, { json } from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import userRoutes from './api/routes/userRoutes.js';
 
+
+
+// Função para conectar ao banco de dados 
+
+
+    
 const app = express();
+const port = 4000;
 
-// Configuração do CORS
-const corsOptions = {
-  origin: 'http://localhost:3000', // Atualize com o domínio do seu frontend
-  optionsSuccessStatus: 200,
-};
 
-app.use(cors(corsOptions));
-app.use(express.json());
+app.use(json());
+app.use(cors()); 
 
-// Conecte ao MongoDB
-try {
-  await mongoose.connect('mongodb://127.0.0.1:27017/meuBancoDeDados', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-  console.log('Conexão com o MongoDB estabelecida com sucesso');
-} catch (error) {
-  console.error('Erro ao conectar ao MongoDB:', error.message);
-  process.exit(1); // Encerra o processo em caso de erro na conexão
-}
 
-// Use as rotas do usuário
-app.use('/api/users', userRoutes);
+// Conecta ao banco de dados
+mongoose.connect('mongodb://127.0.0.1:27017/cadastro', {
+//  useNewUrlParser: true,
+//  useUnifiedTopology: true
+})
+.then(() => {
+  console.log('Conexão bem sucedida com o MongoDB');
+})
+.catch((err) => {
+  console.error('Erro ao conectar ao MongoDB', err);
+});  
 
-// Middleware para lidar com rotas não encontradas
-app.use((req, res, next) => {
-  res.status(404).send('Rota não encontrada');
+
+const users = []; // Array para armazenar usuários cadastrados
+
+app.post('/api/cadastro', (req, res) => {
+  const { nome, email, senha } = req.body;
+
+  // Verifica se o email já está cadastrado
+  if (users.find(user => user.email === email)) {
+    return res.status(400).json({ error: 'Este email já está cadastrado.' });
+  }
+
+  // Adiciona o novo usuário ao array
+  const newUser = { nome, email, senha };
+  users.push(newUser);
+
+  // Retorna o novo usuário cadastrado
+  res.json(newUser);
 });
 
-const PORT = process.env.PORT || 4000;
-
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+app.listen(port, () => {
+  console.log(`Servidor rodando em http://localhost:${port}`);
+});
